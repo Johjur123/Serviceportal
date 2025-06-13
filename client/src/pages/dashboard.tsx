@@ -51,7 +51,8 @@ export default function Dashboard() {
 
   const createCustomerMutation = useMutation({
     mutationFn: async (data: z.infer<typeof customerSchema>) => {
-      return await apiRequest("/api/customers", "POST", data);
+      const response = await apiRequest("POST", "/api/customers", data);
+      return response.json();
     },
     onSuccess: () => {
       toast({
