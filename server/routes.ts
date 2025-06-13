@@ -2,6 +2,10 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+import { apiLimiter, authLimiter, messageLimiter, adminLimiter } from "./rateLimiting";
+import { healthCheck, requestLogger } from "./healthCheck";
+import { withCache, invalidateCache } from "./cache";
+import WebSocketManager from "./websocket";
 import {
   insertCustomerSchema,
   insertConversationSchema,
@@ -12,6 +16,18 @@ import {
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Add request logging
+  app.use(requestLogger);
+  
+  // Health check endpoint (no rate limiting)
+  app.get('/health', healthCheck);
+  
+  // Apply rate limiting
+  app.use('/api/', apiLimiter);
+  app.use('/api/login', authLimiter);
+  app.use('/api/callback', authLimiter);
+  app.use('/api/messages', messageLimiter);
+  
   // Auth middleware
   await setupAuth(app);
 
@@ -118,7 +134,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "User not associated with a company" });
       }
 
-      const conversations = await storage.getConversationsByCompany(user.companyId);
+      const conversations = await withCache(
+        `conversations:${user.companyId}`,
+        () => storage.getConversationsByCompany(user.companyId!),
+        60 // 1 minute cache
+      );
+      
       res.json(conversations);
     } catch (error) {
       console.error("Error fetching conversations:", error);
@@ -150,15 +171,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Message routes
+  // Initialize WebSocket manager
+  const httpServer = createServer(app);
+  const wsManager = new WebSocketManager(httpServer);
+
+  // Message routes with WebSocket integration
   app.post('/api/messages', isAuthenticated, async (req: any, res) => {
     try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (!user?.companyId) {
+        return res.status(400).json({ message: "User not associated with a company" });
+      }
+
       const messageData = insertMessageSchema.parse({
         ...req.body,
         senderId: req.body.senderType === 'agent' ? req.user.claims.sub : req.body.senderId,
       });
       
       const message = await storage.createMessage(messageData);
+      
+      // Invalidate conversation cache
+      invalidateCache(`conversations:${user.companyId}`);
+      
+      // Notify via WebSocket
+      wsManager.notifyNewMessage(user.companyId, messageData.conversationId, message);
+      
       res.json(message);
     } catch (error) {
       console.error("Error creating message:", error);
@@ -401,6 +438,5 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  const httpServer = createServer(app);
   return httpServer;
 }
