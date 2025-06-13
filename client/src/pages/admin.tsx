@@ -65,7 +65,7 @@ export default function AdminPage() {
     enabled: user?.role === "super_admin",
   });
 
-  const { data: users = [] } = useQuery<User[]>({
+  const { data: users = [] } = useQuery({
     queryKey: ["/api/admin/users", selectedCompany],
   });
 
