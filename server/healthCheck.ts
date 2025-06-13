@@ -11,8 +11,9 @@ export const healthCheck = async (req: Request, res: Response) => {
     const memUsage = process.memoryUsage();
     const memUsagePercent = (memUsage.heapUsed / memUsage.heapTotal) * 100;
     
-    if (memUsagePercent > 90) {
-      throw new Error('High memory usage');
+    // Only alert on critical memory usage in production
+    if (process.env.NODE_ENV === 'production' && memUsagePercent > 90) {
+      throw new Error('Critical memory usage');
     }
     
     // CPU check (basic)
