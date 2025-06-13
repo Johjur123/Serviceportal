@@ -52,13 +52,13 @@ export default function ChatWindow({ conversationId, onConversationUpdate }: Cha
   const { user } = useAuth();
 
   // Fetch conversation details
-  const { data: conversation } = useQuery({
+  const { data: conversation } = useQuery<Conversation>({
     queryKey: ['/api/conversations', conversationId],
     enabled: !!conversationId,
   });
 
   // Fetch messages
-  const { data: messages = [], isLoading: messagesLoading } = useQuery({
+  const { data: messages = [], isLoading: messagesLoading } = useQuery<Message[]>({
     queryKey: ['/api/conversations', conversationId, 'messages'],
     enabled: !!conversationId,
     refetchInterval: 5000, // Refresh every 5 seconds

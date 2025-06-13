@@ -9,40 +9,13 @@ import { Phone, Mail, MessageSquare, User, History, Edit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { cn } from "@/lib/utils";
+import type { Conversation, InternalNote } from "@/types";
 
 interface CustomerInfoProps {
   conversationId: number | null;
 }
 
-interface Conversation {
-  id: number;
-  channel: string;
-  status: string;
-  createdAt: string;
-  customer: {
-    id: number;
-    name: string;
-    phone?: string;
-    email?: string;
-    whatsappNumber?: string;
-    instagramHandle?: string;
-    facebookId?: string;
-    isVip: boolean;
-    createdAt: string;
-  };
-  assignedUser?: {
-    firstName: string;
-    lastName: string;
-  };
-}
-
-interface InternalNote {
-  id: number;
-  content: string;
-  createdBy: string;
-  createdAt: string;
-  createdByName: string;
-}
+// Types imported from @/types
 
 export default function CustomerInfo({ conversationId }: CustomerInfoProps) {
   const [newNote, setNewNote] = useState("");

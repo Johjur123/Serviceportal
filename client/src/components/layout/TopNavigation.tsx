@@ -12,6 +12,7 @@ import {
 import { MessageSquare, Bell, ChevronDown, BarChart3, Settings, Users, Home, Shield } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "wouter";
+import type { Analytics } from "@/types";
 
 interface TopNavigationProps {
   onShowAnalytics: () => void;
@@ -22,7 +23,7 @@ export default function TopNavigation({ onShowAnalytics }: TopNavigationProps) {
   const [activeTab, setActiveTab] = useState("dashboard");
 
   // Fetch analytics for summary display
-  const { data: analytics } = useQuery({
+  const { data: analytics } = useQuery<Analytics>({
     queryKey: ['/api/analytics'],
     refetchInterval: 60000, // Refresh every minute
   });
