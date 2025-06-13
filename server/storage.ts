@@ -32,6 +32,15 @@ export interface IStorage {
   // Company operations
   createCompany(company: InsertCompany): Promise<Company>;
   getCompany(id: number): Promise<Company | undefined>;
+  getAllCompanies(): Promise<Company[]>;
+  updateCompany(id: number, company: Partial<InsertCompany>): Promise<Company>;
+  
+  // Admin user management operations
+  getAllUsers(): Promise<User[]>;
+  getUsersByCompany(companyId: number): Promise<User[]>;
+  updateUser(id: string, user: Partial<UpsertUser>): Promise<User>;
+  deleteUser(id: string): Promise<void>;
+  createCompanyUser(userData: UpsertUser): Promise<User>;
   
   // Customer operations
   createCustomer(customer: InsertCustomer): Promise<Customer>;
@@ -97,6 +106,49 @@ export class DatabaseStorage implements IStorage {
   async getCompany(id: number): Promise<Company | undefined> {
     const [company] = await db.select().from(companies).where(eq(companies.id, id));
     return company;
+  }
+
+  async getAllCompanies(): Promise<Company[]> {
+    return await db.select().from(companies).orderBy(desc(companies.createdAt));
+  }
+
+  async updateCompany(id: number, company: Partial<InsertCompany>): Promise<Company> {
+    const [updatedCompany] = await db
+      .update(companies)
+      .set({ ...company, updatedAt: new Date() })
+      .where(eq(companies.id, id))
+      .returning();
+    return updatedCompany;
+  }
+
+  // Admin user management operations
+  async getAllUsers(): Promise<User[]> {
+    return await db.select().from(users).orderBy(desc(users.createdAt));
+  }
+
+  async getUsersByCompany(companyId: number): Promise<User[]> {
+    return await db.select().from(users).where(eq(users.companyId, companyId));
+  }
+
+  async updateUser(id: string, user: Partial<UpsertUser>): Promise<User> {
+    const [updatedUser] = await db
+      .update(users)
+      .set({ ...user, updatedAt: new Date() })
+      .where(eq(users.id, id))
+      .returning();
+    return updatedUser;
+  }
+
+  async deleteUser(id: string): Promise<void> {
+    await db.delete(users).where(eq(users.id, id));
+  }
+
+  async createCompanyUser(userData: UpsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(userData)
+      .returning();
+    return user;
   }
 
   // Customer operations

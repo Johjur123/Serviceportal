@@ -31,7 +31,7 @@ export const users = pgTable("users", {
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
-  role: varchar("role").default("agent"),
+  role: varchar("role").default("agent"), // super_admin, company_admin, agent
   companyId: integer("company_id").references(() => companies.id),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -42,7 +42,11 @@ export const companies = pgTable("companies", {
   id: serial("id").primaryKey(),
   name: varchar("name").notNull(),
   subscriptionPlan: varchar("subscription_plan").default("basic"),
+  isActive: boolean("is_active").default(true),
+  maxUsers: integer("max_users").default(5),
+  maxChannels: integer("max_channels").default(3),
   createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // Customers table

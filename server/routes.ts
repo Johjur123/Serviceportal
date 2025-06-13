@@ -265,6 +265,142 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin routes - Company Management
+  app.get("/api/admin/companies", isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (user?.role !== "super_admin") {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const companies = await storage.getAllCompanies();
+      res.json(companies);
+    } catch (error) {
+      console.error("Error fetching companies:", error);
+      res.status(500).json({ message: "Failed to fetch companies" });
+    }
+  });
+
+  app.post("/api/admin/companies", isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (user?.role !== "super_admin") {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const company = await storage.createCompany(req.body);
+      res.json(company);
+    } catch (error) {
+      console.error("Error creating company:", error);
+      res.status(500).json({ message: "Failed to create company" });
+    }
+  });
+
+  app.put("/api/admin/companies/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (user?.role !== "super_admin") {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const companyId = parseInt(req.params.id);
+      const company = await storage.updateCompany(companyId, req.body);
+      res.json(company);
+    } catch (error) {
+      console.error("Error updating company:", error);
+      res.status(500).json({ message: "Failed to update company" });
+    }
+  });
+
+  // Admin routes - User Management
+  app.get("/api/admin/users", isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      const companyId = req.query.companyId ? parseInt(req.query.companyId as string) : null;
+      
+      if (user?.role === "super_admin") {
+        const users = companyId 
+          ? await storage.getUsersByCompany(companyId)
+          : await storage.getAllUsers();
+        res.json(users);
+      } else if (user?.role === "company_admin" && user.companyId) {
+        const users = await storage.getUsersByCompany(user.companyId);
+        res.json(users);
+      } else {
+        return res.status(403).json({ message: "Access denied" });
+      }
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
+  app.post("/api/admin/users", isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (!["super_admin", "company_admin"].includes(user?.role || "")) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      // Company admins can only create users for their own company
+      if (user?.role === "company_admin" && req.body.companyId !== user.companyId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const newUser = await storage.createCompanyUser(req.body);
+      res.json(newUser);
+    } catch (error) {
+      console.error("Error creating user:", error);
+      res.status(500).json({ message: "Failed to create user" });
+    }
+  });
+
+  app.put("/api/admin/users/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (!["super_admin", "company_admin"].includes(user?.role || "")) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const userId = req.params.id;
+      const targetUser = await storage.getUser(userId);
+      
+      // Company admins can only manage users from their own company
+      if (user?.role === "company_admin" && targetUser?.companyId !== user.companyId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const updatedUser = await storage.updateUser(userId, req.body);
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating user:", error);
+      res.status(500).json({ message: "Failed to update user" });
+    }
+  });
+
+  app.delete("/api/admin/users/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (!["super_admin", "company_admin"].includes(user?.role || "")) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const userId = req.params.id;
+      const targetUser = await storage.getUser(userId);
+      
+      // Company admins can only delete users from their own company
+      if (user?.role === "company_admin" && targetUser?.companyId !== user.companyId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      await storage.deleteUser(userId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      res.status(500).json({ message: "Failed to delete user" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
