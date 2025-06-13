@@ -10,37 +10,14 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { cn } from "@/lib/utils";
+import type { Message, Conversation, User } from "@/types";
 
 interface ChatWindowProps {
   conversationId: number | null;
   onConversationUpdate?: () => void;
 }
 
-interface Message {
-  id: number;
-  content: string;
-  senderType: 'customer' | 'agent';
-  senderId: string;
-  timestamp: string;
-  isRead: boolean;
-}
-
-interface Conversation {
-  id: number;
-  channel: string;
-  status: string;
-  customer: {
-    id: number;
-    name: string;
-    phone?: string;
-    email?: string;
-    isVip: boolean;
-  };
-  assignedUser?: {
-    firstName: string;
-    lastName: string;
-  };
-}
+// Types imported from @/types
 
 const CHANNEL_COLORS = {
   whatsapp: "bg-green-500",
@@ -317,7 +294,7 @@ export default function ChatWindow({ conversationId, onConversationUpdate }: Cha
                 {message.senderType === 'agent' && (
                   <Avatar className="w-8 h-8 bg-gradient-to-br from-gray-600 to-gray-700 flex-shrink-0">
                     <AvatarFallback className="bg-gradient-to-br from-gray-600 to-gray-700 text-white font-semibold text-xs">
-                      {user?.firstName ? getInitials(`${user.firstName} ${user.lastName}`) : 'A'}
+                      {user?.firstName ? getInitials(`${user.firstName || ''} ${user.lastName || ''}`) : 'A'}
                     </AvatarFallback>
                   </Avatar>
                 )}
@@ -329,7 +306,7 @@ export default function ChatWindow({ conversationId, onConversationUpdate }: Cha
               <div className="flex items-start gap-2">
                 <Avatar className="w-8 h-8 bg-gradient-to-br from-gray-600 to-gray-700 flex-shrink-0">
                   <AvatarFallback className="bg-gradient-to-br from-gray-600 to-gray-700 text-white font-semibold text-xs">
-                    {user?.firstName ? getInitials(`${user.firstName} ${user.lastName}`) : 'A'}
+                    {user?.firstName ? getInitials(`${user.firstName || ''} ${user.lastName || ''}`) : 'A'}
                   </AvatarFallback>
                 </Avatar>
                 <div className="bg-white p-3 rounded-2xl rounded-tl-sm shadow-sm">
