@@ -6,24 +6,14 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Search, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { Conversation } from "@/types";
 
 interface ConversationListProps {
   onSelectConversation: (id: number) => void;
   selectedConversationId: number | null;
 }
 
-interface Conversation {
-  id: number;
-  customerId: number;
-  channel: string;
-  status: string;
-  customerName: string;
-  customerIsVip: boolean;
-  unreadCount: number;
-  lastMessage: string;
-  lastMessageAt: string;
-  assignedUserName?: string;
-}
+// Using Conversation type from @/types
 
 const CHANNEL_COLORS = {
   whatsapp: "bg-green-500",
@@ -57,7 +47,7 @@ export default function ConversationList({ onSelectConversation, selectedConvers
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
 
-  const { data: conversations = [], isLoading, refetch } = useQuery({
+  const { data: conversations = [], isLoading, refetch } = useQuery<Conversation[]>({
     queryKey: ['/api/conversations'],
     refetchInterval: 30000, // Refresh every 30 seconds
   });
@@ -69,12 +59,12 @@ export default function ConversationList({ onSelectConversation, selectedConvers
     }
   }, [conversations, selectedConversationId, onSelectConversation]);
 
-  const filteredConversations = conversations.filter((conv: Conversation) => {
-    const matchesSearch = conv.customerName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         conv.lastMessage?.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredConversations = Array.isArray(conversations) ? conversations.filter((conv: any) => {
+    const customerName = conv.customer?.name || "Unknown";
+    const matchesSearch = customerName.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesFilter = filterStatus === "all" || conv.status === filterStatus;
     return matchesSearch && matchesFilter;
-  });
+  }) : [];
 
   const getInitials = (name: string) => {
     return name?.split(" ").map(n => n[0]).join("").toUpperCase() || "?";
@@ -201,7 +191,7 @@ export default function ConversationList({ onSelectConversation, selectedConvers
                 <div className="relative">
                   <Avatar className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600">
                     <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-semibold">
-                      {getInitials(conversation.customerName)}
+                      {getInitials(conversation.customer?.name || "Unknown")}
                     </AvatarFallback>
                   </Avatar>
                   <div className={cn(
@@ -218,20 +208,20 @@ export default function ConversationList({ onSelectConversation, selectedConvers
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
                     <h3 className="font-semibold text-gray-900 truncate flex items-center gap-2">
-                      {conversation.customerName}
-                      {conversation.customerIsVip && (
+                      {conversation.customer?.name || "Unknown"}
+                      {conversation.customer?.isVip && (
                         <Badge variant="secondary" className="text-xs bg-yellow-100 text-yellow-800">
                           VIP
                         </Badge>
                       )}
                     </h3>
                     <span className="text-xs text-gray-500">
-                      {formatTime(conversation.lastMessageAt)}
+                      {formatTime(conversation.updatedAt)}
                     </span>
                   </div>
                   
                   <p className="text-sm text-gray-600 truncate mb-2">
-                    {conversation.lastMessage || "Nessun messaggio"}
+                    Nessun messaggio
                   </p>
                   
                   <div className="flex items-center justify-between">
