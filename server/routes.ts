@@ -171,7 +171,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Initialize WebSocket manager
+  // Create HTTP server and initialize WebSocket manager
   const httpServer = createServer(app);
   const wsManager = new WebSocketManager(httpServer);
 
@@ -194,7 +194,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       invalidateCache(`conversations:${user.companyId}`);
       
       // Notify via WebSocket
-      wsManager.notifyNewMessage(user.companyId, messageData.conversationId, message);
+      if (user.companyId) {
+        wsManager.notifyNewMessage(user.companyId, messageData.conversationId, message);
+      }
       
       res.json(message);
     } catch (error) {
