@@ -197,7 +197,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       invalidateCache(`conversations:${user.companyId}`);
       
       // Notify via WebSocket
-      if (user.companyId) {
+      if (user.companyId && typeof messageData.conversationId === 'number') {
         wsManager.notifyNewMessage(user.companyId, messageData.conversationId, message);
       }
       

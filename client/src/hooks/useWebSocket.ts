@@ -11,10 +11,9 @@ interface WebSocketMessage {
 
 export const useWebSocket = (enabled: boolean = true) => {
   const ws = useRef<WebSocket | null>(null);
-  const queryClient = useQueryClient();
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
   const reconnectAttempts = useRef(0);
   const maxReconnectAttempts = 5;
+  const queryClient = useQueryClient();
 
   const connect = useCallback(() => {
     if (!enabled || ws.current?.readyState === WebSocket.OPEN) {
@@ -22,11 +21,8 @@ export const useWebSocket = (enabled: boolean = true) => {
     }
 
     try {
-      // Skip WebSocket for now - will be enabled when proper token auth is implemented
-      return;
-      
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const wsUrl = `${protocol}//${window.location.host}/ws?token=${token}`;
+      const wsUrl = `${protocol}//${window.location.host}/ws`;
       
       ws.current = new WebSocket(wsUrl);
 
@@ -34,7 +30,6 @@ export const useWebSocket = (enabled: boolean = true) => {
         console.log('WebSocket connected');
         reconnectAttempts.current = 0;
         
-        // Send ping to keep connection alive
         const pingInterval = setInterval(() => {
           if (ws.current?.readyState === WebSocket.OPEN) {
             ws.current.send(JSON.stringify({ type: 'ping' }));
@@ -50,7 +45,6 @@ export const useWebSocket = (enabled: boolean = true) => {
           
           switch (data.type) {
             case 'new_message':
-              // Invalidate conversation queries to trigger refresh
               queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
               if (data.conversationId) {
                 queryClient.invalidateQueries({ 
@@ -64,7 +58,6 @@ export const useWebSocket = (enabled: boolean = true) => {
               break;
             
             case 'pong':
-              // Handle pong response
               break;
           }
         } catch (error) {
@@ -75,10 +68,9 @@ export const useWebSocket = (enabled: boolean = true) => {
       ws.current.onclose = (event) => {
         console.log('WebSocket disconnected:', event.code, event.reason);
         
-        // Attempt to reconnect if not manually closed
         if (event.code !== 1000 && reconnectAttempts.current < maxReconnectAttempts) {
-          const timeout = Math.pow(2, reconnectAttempts.current) * 1000; // Exponential backoff
-          reconnectTimeoutRef.current = setTimeout(() => {
+          const timeout = Math.pow(2, reconnectAttempts.current) * 1000;
+          setTimeout(() => {
             reconnectAttempts.current++;
             connect();
           }, timeout);
@@ -88,17 +80,12 @@ export const useWebSocket = (enabled: boolean = true) => {
       ws.current.onerror = (error) => {
         console.error('WebSocket error:', error);
       };
-
     } catch (error) {
       console.error('Failed to create WebSocket connection:', error);
     }
   }, [enabled, queryClient]);
 
   const disconnect = useCallback(() => {
-    if (reconnectTimeoutRef.current) {
-      clearTimeout(reconnectTimeoutRef.current);
-    }
-    
     if (ws.current) {
       ws.current.close(1000, 'Manual disconnect');
       ws.current = null;
@@ -119,6 +106,7 @@ export const useWebSocket = (enabled: boolean = true) => {
 
   return {
     isConnected: ws.current?.readyState === WebSocket.OPEN,
-    reconnectAttempts: reconnectAttempts.current,
+    connect,
+    disconnect,
   };
 };
