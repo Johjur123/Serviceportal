@@ -56,6 +56,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         companyId: user.companyId,
       });
       
+      // Invalidate customers cache
+      invalidateCache(`customers:${user.companyId}`);
+      
       const customer = await storage.createCustomer(customerData);
       res.json(customer);
     } catch (error) {
