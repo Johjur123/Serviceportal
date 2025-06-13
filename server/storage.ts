@@ -196,7 +196,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getConversationWithDetails(id: number): Promise<any> {
-    const [conversation] = await db
+    const [result] = await db
       .select({
         id: conversations.id,
         customerId: conversations.customerId,
@@ -206,29 +206,55 @@ export class DatabaseStorage implements IStorage {
         priority: conversations.priority,
         lastMessageAt: conversations.lastMessageAt,
         createdAt: conversations.createdAt,
-        customer: {
-          id: customers.id,
-          name: customers.name,
-          phone: customers.phone,
-          email: customers.email,
-          whatsappNumber: customers.whatsappNumber,
-          instagramHandle: customers.instagramHandle,
-          facebookId: customers.facebookId,
-          isVip: customers.isVip,
-          createdAt: customers.createdAt,
-        },
-        assignedUser: {
-          id: users.id,
-          firstName: users.firstName,
-          lastName: users.lastName,
-          email: users.email,
-        },
+        customerId2: customers.id,
+        customerName: customers.name,
+        customerPhone: customers.phone,
+        customerEmail: customers.email,
+        customerWhatsappNumber: customers.whatsappNumber,
+        customerInstagramHandle: customers.instagramHandle,
+        customerFacebookId: customers.facebookId,
+        customerIsVip: customers.isVip,
+        customerCreatedAt: customers.createdAt,
+        userId: users.id,
+        userFirstName: users.firstName,
+        userLastName: users.lastName,
+        userEmail: users.email,
       })
       .from(conversations)
       .leftJoin(customers, eq(conversations.customerId, customers.id))
       .leftJoin(users, eq(conversations.assignedTo, users.id))
       .where(eq(conversations.id, id));
-    return conversation;
+    
+    if (!result) return null;
+    
+    // Restructure the data to match the expected format
+    return {
+      id: result.id,
+      customerId: result.customerId,
+      channel: result.channel,
+      status: result.status,
+      assignedTo: result.assignedTo,
+      priority: result.priority,
+      lastMessageAt: result.lastMessageAt,
+      createdAt: result.createdAt,
+      customer: {
+        id: result.customerId2,
+        name: result.customerName,
+        phone: result.customerPhone,
+        email: result.customerEmail,
+        whatsappNumber: result.customerWhatsappNumber,
+        instagramHandle: result.customerInstagramHandle,
+        facebookId: result.customerFacebookId,
+        isVip: result.customerIsVip,
+        createdAt: result.customerCreatedAt,
+      },
+      assignedUser: result.userId ? {
+        id: result.userId,
+        firstName: result.userFirstName,
+        lastName: result.userLastName,
+        email: result.userEmail,
+      } : null,
+    };
   }
 
   // Message operations

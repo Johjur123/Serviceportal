@@ -214,7 +214,7 @@ export default function ChatWindow({ conversationId, onConversationUpdate }: Cha
             <div className="relative">
               <Avatar className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600">
                 <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-semibold">
-                  {getInitials(conversation.customer.name)}
+                  {getInitials(conversation?.customer?.name || "Unknown")}
                 </AvatarFallback>
               </Avatar>
               <div className={cn(
@@ -229,8 +229,8 @@ export default function ChatWindow({ conversationId, onConversationUpdate }: Cha
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="font-semibold text-gray-900">{conversation.customer.name}</h3>
-                {conversation.customer.isVip && (
+                <h3 className="font-semibold text-gray-900">{conversation?.customer?.name || "Unknown Customer"}</h3>
+                {conversation?.customer?.isVip && (
                   <Badge variant="secondary" className="text-xs bg-yellow-100 text-yellow-800">
                     VIP
                   </Badge>
@@ -289,7 +289,7 @@ export default function ChatWindow({ conversationId, onConversationUpdate }: Cha
                 {message.senderType === 'customer' && (
                   <Avatar className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 flex-shrink-0">
                     <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-semibold text-xs">
-                      {getInitials(conversation.customer.name)}
+                      {getInitials(conversation?.customer?.name || "Unknown")}
                     </AvatarFallback>
                   </Avatar>
                 )}

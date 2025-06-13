@@ -138,46 +138,46 @@ export default function CustomerInfo({ conversationId }: CustomerInfoProps) {
         <div className="text-center mb-4">
           <Avatar className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 mx-auto mb-3">
             <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-semibold text-lg">
-              {getInitials(customer.name)}
+              {getInitials(customer?.name || "Unknown")}
             </AvatarFallback>
           </Avatar>
-          <h3 className="font-semibold text-lg text-gray-900">{customer.name}</h3>
+          <h3 className="font-semibold text-lg text-gray-900">{customer?.name || "Unknown Customer"}</h3>
           <p className="text-sm text-gray-500">
-            Cliente dal {formatDate(customer.createdAt)}
+            Cliente dal {customer?.createdAt ? formatDate(customer.createdAt) : "Data sconosciuta"}
           </p>
         </div>
 
         {/* Contact Info */}
         <div className="space-y-3">
-          {customer.phone && (
+          {customer?.phone && (
             <div className="flex items-center gap-3 text-sm">
               <Phone className="h-4 w-4 text-gray-400" />
               <span className="text-gray-700">{customer.phone}</span>
             </div>
           )}
           
-          {customer.email && (
+          {customer?.email && (
             <div className="flex items-center gap-3 text-sm">
               <Mail className="h-4 w-4 text-gray-400" />
               <span className="text-gray-700">{customer.email}</span>
             </div>
           )}
           
-          {customer.whatsappNumber && (
+          {customer?.whatsappNumber && (
             <div className="flex items-center gap-3 text-sm">
               <MessageSquare className="h-4 w-4 text-green-500" />
               <span className="text-gray-700">WhatsApp collegato</span>
             </div>
           )}
           
-          {customer.instagramHandle && (
+          {customer?.instagramHandle && (
             <div className="flex items-center gap-3 text-sm">
               <span className="w-4 h-4 text-pink-500">📷</span>
               <span className="text-gray-700">@{customer.instagramHandle}</span>
             </div>
           )}
           
-          {customer.facebookId && (
+          {customer?.facebookId && (
             <div className="flex items-center gap-3 text-sm">
               <span className="w-4 h-4 text-blue-600">f</span>
               <span className="text-gray-700">Facebook collegato</span>
@@ -191,16 +191,16 @@ export default function CustomerInfo({ conversationId }: CustomerInfoProps) {
             variant="secondary" 
             className={cn(
               "text-sm",
-              customer.isVip 
+              customer?.isVip 
                 ? "bg-yellow-100 text-yellow-800" 
                 : "bg-green-100 text-green-800"
             )}
           >
             <span className={cn(
               "w-2 h-2 rounded-full mr-2",
-              customer.isVip ? "bg-yellow-500" : "bg-green-500"
+              customer?.isVip ? "bg-yellow-500" : "bg-green-500"
             )}></span>
-            {customer.isVip ? "Cliente VIP" : "Cliente Standard"}
+            {customer?.isVip ? "Cliente VIP" : "Cliente Standard"}
           </Badge>
         </div>
       </div>
@@ -213,7 +213,7 @@ export default function CustomerInfo({ conversationId }: CustomerInfoProps) {
             size="sm" 
             variant="outline" 
             className="p-3 h-auto flex flex-col items-center gap-1"
-            onClick={() => customer.phone && window.open(`tel:${customer.phone}`)}
+            onClick={() => customer?.phone && window.open(`tel:${customer.phone}`)}
           >
             <Phone className="h-4 w-4" />
             <span className="text-xs">Chiama</span>
@@ -223,7 +223,7 @@ export default function CustomerInfo({ conversationId }: CustomerInfoProps) {
             size="sm" 
             variant="outline" 
             className="p-3 h-auto flex flex-col items-center gap-1"
-            onClick={() => customer.email && window.open(`mailto:${customer.email}`)}
+            onClick={() => customer?.email && window.open(`mailto:${customer.email}`)}
           >
             <Mail className="h-4 w-4" />
             <span className="text-xs">Email</span>
