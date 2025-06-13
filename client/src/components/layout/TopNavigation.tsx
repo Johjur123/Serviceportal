@@ -9,8 +9,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MessageSquare, Bell, ChevronDown, BarChart3, Settings, Users, Home } from "lucide-react";
+import { MessageSquare, Bell, ChevronDown, BarChart3, Settings, Users, Home, Shield } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { Link } from "wouter";
 
 interface TopNavigationProps {
   onShowAnalytics: () => void;
@@ -90,6 +91,20 @@ export default function TopNavigation({ onShowAnalytics }: TopNavigationProps) {
               <Settings className="w-4 h-4 mr-2" />
               Impostazioni
             </Button>
+            
+            {(user?.role === "super_admin" || user?.role === "company_admin") && (
+              <Link href="/admin">
+                <Button
+                  variant={activeTab === "admin" ? "default" : "ghost"}
+                  size="sm"
+                  className={activeTab === "admin" ? "bg-blue-600 text-white hover:bg-blue-700" : ""}
+                  onClick={() => setActiveTab("admin")}
+                >
+                  <Shield className="w-4 h-4 mr-2" />
+                  Admin
+                </Button>
+              </Link>
+            )}
           </nav>
         </div>
         
