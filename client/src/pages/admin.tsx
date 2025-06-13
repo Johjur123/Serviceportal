@@ -16,6 +16,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Building, Users, Plus, Edit, Trash2, Settings, UserCheck, UserX } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { User, Company } from "@/types";
 
 const companySchema = z.object({
   name: z.string().min(1, "Nome azienda è richiesto"),
@@ -50,7 +51,7 @@ export default function AdminPage() {
     return <div className="flex items-center justify-center min-h-screen">Caricamento...</div>;
   }
 
-  if (!user || !["super_admin", "company_admin"].includes(user.role)) {
+  if (!user || !user.role || !["super_admin", "company_admin"].includes(user.role)) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Accesso Negato</h1>
@@ -59,17 +60,13 @@ export default function AdminPage() {
     );
   }
 
-  const { data: companies = [] } = useQuery({
+  const { data: companies = [] } = useQuery<Company[]>({
     queryKey: ["/api/admin/companies"],
     enabled: user?.role === "super_admin",
   });
 
-  const { data: users = [] } = useQuery({
+  const { data: users = [] } = useQuery<User[]>({
     queryKey: ["/api/admin/users", selectedCompany],
-    queryFn: async () => {
-      const response = await apiRequest(`/api/admin/users${selectedCompany ? `?companyId=${selectedCompany}` : ""}`);
-      return response;
-    },
   });
 
   const companyForm = useForm({

@@ -23,13 +23,13 @@ export default function CustomerInfo({ conversationId }: CustomerInfoProps) {
   const { toast } = useToast();
 
   // Fetch conversation details
-  const { data: conversation } = useQuery({
+  const { data: conversation } = useQuery<Conversation>({
     queryKey: ['/api/conversations', conversationId],
     enabled: !!conversationId,
   });
 
   // Fetch internal notes
-  const { data: notes = [] } = useQuery({
+  const { data: notes = [] } = useQuery<InternalNote[]>({
     queryKey: ['/api/customers', conversation?.customer?.id, 'notes'],
     enabled: !!conversation?.customer?.id,
   });
