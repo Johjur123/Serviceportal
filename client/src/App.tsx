@@ -13,6 +13,10 @@ import AdminPage from "@/pages/admin";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
+  
+  // Enable WebSocket and offline support for authenticated users
+  useWebSocket(isAuthenticated);
+  useOfflineSupport();
 
   return (
     <Switch>

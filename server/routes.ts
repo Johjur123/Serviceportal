@@ -440,5 +440,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // GDPR Compliance Routes
+  app.get('/api/customers/:id/export', isAuthenticated, adminLimiter, async (req: any, res) => {
+    try {
+      const customerId = parseInt(req.params.id);
+      const userId = req.user?.claims?.sub;
+      const user = await storage.getUser(userId);
+      
+      if (!user?.companyId) {
+        return res.status(400).json({ message: "User not associated with a company" });
+      }
+
+      const customer = await storage.getCustomer(customerId);
+      if (!customer || customer.companyId !== user.companyId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const notes = await storage.getNotesByCustomer(customerId);
+      const exportData = {
+        customer,
+        notes,
+        exportDate: new Date().toISOString(),
+        companyId: user.companyId
+      };
+
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Content-Disposition', `attachment; filename="customer_${customerId}_data_${new Date().toISOString().split('T')[0]}.json"`);
+      res.json(exportData);
+    } catch (error) {
+      console.error("Error exporting customer data:", error);
+      res.status(500).json({ message: "Failed to export customer data" });
+    }
+  });
+
+  app.delete('/api/customers/:id/gdpr-delete', isAuthenticated, adminLimiter, async (req: any, res) => {
+    try {
+      const customerId = parseInt(req.params.id);
+      const userId = req.user?.claims?.sub;
+      const user = await storage.getUser(userId);
+
+      if (!user?.companyId || !["super_admin", "company_admin"].includes(user.role || "")) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const customer = await storage.getCustomer(customerId);
+      if (!customer || customer.companyId !== user.companyId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      await storage.updateCustomer(customerId, {
+        name: `Cliente Anonimo ${customerId}`,
+        email: null,
+        phone: null,
+        whatsappNumber: null,
+        instagramHandle: null,
+        facebookId: null,
+      });
+
+      res.json({ 
+        message: "Customer data anonymized successfully",
+        customerId,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error("Error anonymizing customer data:", error);
+      res.status(500).json({ message: "Failed to anonymize customer data" });
+    }
+  });
+
   return httpServer;
 }
