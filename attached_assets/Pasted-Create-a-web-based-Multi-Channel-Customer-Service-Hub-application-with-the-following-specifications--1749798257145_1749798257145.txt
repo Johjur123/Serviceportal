@@ -1,0 +1,65 @@
+Create a web-based Multi-Channel Customer Service Hub application with the following specifications:
+
+PROJECT OVERVIEW:
+Build a SaaS platform that unifies customer communications from WhatsApp, Email, Instagram DM, Facebook Messenger, and phone calls into one dashboard for Italian SMB businesses.
+
+TECH STACK:
+- Frontend: React with Tailwind CSS
+- Backend: Node.js with Express
+- Database: PostgreSQL
+- Real-time: Socket.io for live updates
+- Authentication: JWT tokens
+
+CORE FEATURES TO IMPLEMENT:
+
+1. UNIFIED INBOX
+- Single dashboard showing all messages from different channels
+- Color-coded by channel type (WhatsApp green, Email blue, etc.)
+- Message threading by customer
+- Real-time message updates
+
+2. CUSTOMER MANAGEMENT
+- Automatic customer profile creation
+- Link phone/email/social accounts to same customer
+- Conversation history across all channels
+- Internal notes section
+
+3. RESPONSE MANAGEMENT
+- Quick response templates (Italian phrases)
+- Message assignment to team members
+- Response time tracking
+- Status indicators (new, in-progress, resolved)
+
+4. BASIC ANALYTICS
+- Response time averages
+- Messages per channel
+- Team member performance
+- Customer satisfaction simple rating
+
+DATABASE SCHEMA:
+- customers (id, name, phone, email, created_at)
+- conversations (id, customer_id, channel, status, assigned_to, created_at)
+- messages (id, conversation_id, content, sender_type, timestamp, is_read)
+- users (id, name, email, role, company_id)
+- companies (id, name, subscription_plan)
+- templates (id, company_id, title, content, category)
+
+UI REQUIREMENTS:
+- Clean, WhatsApp-inspired chat interface
+- Left sidebar: conversation list with preview
+- Center: active conversation
+- Right sidebar: customer info and notes
+- Top: search bar and filters
+- Italian language interface
+
+INITIAL MVP FEATURES:
+1. User registration/login
+2. Manual message input (simulate channels)
+3. Customer profile creation
+4. Template responses
+5. Basic conversation management
+6. Simple dashboard with message counts
+
+Start with the project setup, authentication system, and basic UI layout. Create a modern, responsive design that works well on desktop and tablet.
+
+Include sample data for testing with Italian customer names and typical customer service scenarios.
