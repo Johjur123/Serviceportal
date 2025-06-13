@@ -130,7 +130,7 @@ export default function ChatWindow({ conversationId, onConversationUpdate }: Cha
 
   // Mark messages as read when conversation is opened
   useEffect(() => {
-    if (conversationId && messages.length > 0) {
+    if (conversationId && Array.isArray(messages) && messages.length > 0) {
       const hasUnreadMessages = messages.some((msg: Message) => 
         !msg.isRead && msg.senderType === 'customer'
       );
@@ -219,11 +219,11 @@ export default function ChatWindow({ conversationId, onConversationUpdate }: Cha
               </Avatar>
               <div className={cn(
                 "absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white flex items-center justify-center",
-                CHANNEL_COLORS[conversation.channel as keyof typeof CHANNEL_COLORS]
+                CHANNEL_COLORS[conversation?.channel as keyof typeof CHANNEL_COLORS]
               )}>
                 <i className={cn(
                   "text-white text-xs",
-                  CHANNEL_ICONS[conversation.channel as keyof typeof CHANNEL_ICONS]
+                  CHANNEL_ICONS[conversation?.channel as keyof typeof CHANNEL_ICONS]
                 )}></i>
               </div>
             </div>
@@ -237,11 +237,11 @@ export default function ChatWindow({ conversationId, onConversationUpdate }: Cha
                 )}
               </div>
               <p className="text-sm text-gray-500">
-                {conversation.channel === 'whatsapp' && 'WhatsApp'}
-                {conversation.channel === 'email' && 'Email'}
-                {conversation.channel === 'instagram' && 'Instagram'}
-                {conversation.channel === 'facebook' && 'Facebook'}
-                {conversation.channel === 'phone' && 'Telefono'}
+                {conversation?.channel === 'whatsapp' && 'WhatsApp'}
+                {conversation?.channel === 'email' && 'Email'}
+                {conversation?.channel === 'instagram' && 'Instagram'}
+                {conversation?.channel === 'facebook' && 'Facebook'}
+                {conversation?.channel === 'phone' && 'Telefono'}
                 • Online ora
               </p>
             </div>
@@ -270,7 +270,7 @@ export default function ChatWindow({ conversationId, onConversationUpdate }: Cha
         ) : (
           <>
             {/* Date Separator */}
-            {messages.length > 0 && (
+            {Array.isArray(messages) && messages.length > 0 && (
               <div className="text-center">
                 <Badge variant="secondary" className="bg-gray-200 text-gray-600">
                   {formatDate(messages[0].timestamp)}
@@ -278,7 +278,7 @@ export default function ChatWindow({ conversationId, onConversationUpdate }: Cha
               </div>
             )}
 
-            {messages.map((message: Message) => (
+            {Array.isArray(messages) && messages.map((message: Message) => (
               <div 
                 key={message.id}
                 className={cn(

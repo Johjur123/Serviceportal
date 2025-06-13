@@ -66,7 +66,10 @@ export default function AdminPage() {
 
   const { data: users = [] } = useQuery({
     queryKey: ["/api/admin/users", selectedCompany],
-    queryFn: () => apiRequest(`/api/admin/users${selectedCompany ? `?companyId=${selectedCompany}` : ""}`),
+    queryFn: async () => {
+      const response = await apiRequest(`/api/admin/users${selectedCompany ? `?companyId=${selectedCompany}` : ""}`);
+      return response;
+    },
   });
 
   const companyForm = useForm({
