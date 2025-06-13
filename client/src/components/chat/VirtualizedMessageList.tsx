@@ -84,6 +84,7 @@ const VirtualizedMessageList = forwardRef<any, VirtualizedMessageListProps>(
       <List
         ref={ref}
         height={height}
+        width={400}
         itemCount={messages.length}
         itemSize={80} // Approximate height per message
         itemData={messages}
