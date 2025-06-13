@@ -241,11 +241,7 @@ export default function ConversationList({ onSelectConversation, selectedConvers
                       {conversation.status === 'resolved' && 'Risolto'}
                     </Badge>
                     
-                    {conversation.unreadCount > 0 && (
-                      <Badge className="bg-green-600 text-white text-xs px-2 py-1 rounded-full">
-                        {conversation.unreadCount}
-                      </Badge>
-                    )}
+                    {/* Unread count would be calculated from messages */}
                   </div>
                 </div>
               </div>

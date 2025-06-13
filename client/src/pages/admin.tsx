@@ -565,7 +565,7 @@ export default function AdminPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {users.map((userData: any) => (
+                    {Array.isArray(users) && users.map((userData: any) => (
                       <tr key={userData.id} className="hover:bg-gray-50">
                         <td className="p-4">
                           <div className="flex items-center gap-3">
@@ -622,7 +622,7 @@ export default function AdminPage() {
                     ))}
                   </tbody>
                 </table>
-                {users.length === 0 && (
+                {Array.isArray(users) && users.length === 0 && (
                   <div className="text-center py-12 text-gray-500">
                     <Users className="h-12 w-12 mx-auto mb-4 opacity-20" />
                     <p>Nessun utente trovato</p>

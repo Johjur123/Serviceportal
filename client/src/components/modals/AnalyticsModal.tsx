@@ -18,6 +18,7 @@ import {
   Users,
   X,
 } from "lucide-react";
+import type { Analytics } from "@/types";
 
 interface AnalyticsModalProps {
   isOpen: boolean;
@@ -26,7 +27,7 @@ interface AnalyticsModalProps {
 
 export default function AnalyticsModal({ isOpen, onClose }: AnalyticsModalProps) {
   // Fetch analytics data
-  const { data: analytics, isLoading } = useQuery({
+  const { data: analytics, isLoading } = useQuery<Analytics>({
     queryKey: ['/api/analytics'],
     enabled: isOpen,
   });
@@ -54,7 +55,7 @@ export default function AnalyticsModal({ isOpen, onClose }: AnalyticsModalProps)
     return null;
   }
 
-  const totalChannelMessages = analytics?.channelStats?.reduce((acc: number, stat: any) => acc + stat.count, 0) || 0;
+  const totalConversations = analytics?.todayConversations || 0;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
