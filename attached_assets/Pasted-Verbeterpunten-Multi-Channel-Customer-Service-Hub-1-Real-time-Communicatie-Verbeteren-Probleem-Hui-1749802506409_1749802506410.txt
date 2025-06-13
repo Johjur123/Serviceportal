@@ -1,0 +1,290 @@
+Verbeterpunten Multi-Channel Customer Service Hub
+1. Real-time Communicatie Verbeteren
+Probleem: Huidige polling (5-10 seconden) is niet optimaal voor real-time chat
+Oplossing: Implementeer WebSockets voor instant updates
+typescript// Server: WebSocket setup
+import { WebSocketServer } from 'ws';
+
+const wss = new WebSocketServer({ port: 8080 });
+
+wss.on('connection', (ws, req) => {
+  const userId = getUserFromToken(req.headers.authorization);
+  ws.userId = userId;
+  
+  ws.on('message', (data) => {
+    const message = JSON.parse(data);
+    // Broadcast to relevant users
+    broadcastToCompany(message.companyId, message);
+  });
+});
+
+// Client: WebSocket integration  
+const useWebSocket = () => {
+  useEffect(() => {
+    const ws = new WebSocket('wss://your-domain.replit.app/ws');
+    ws.onmessage = (event) => {
+      const update = JSON.parse(event.data);
+      if (update.type === 'new_message') {
+        queryClient.invalidateQueries(['conversations']);
+      }
+    };
+    return () => ws.close();
+  }, []);
+};
+2. Performance Optimalisaties
+A. Pagination toevoegen:
+typescript// Server: Conversations with pagination
+async getConversationsByCompany(companyId: number, page = 1, limit = 20) {
+  const offset = (page - 1) * limit;
+  
+  const result = await db
+    .select()
+    .from(conversations)
+    .where(eq(conversations.companyId, companyId))
+    .orderBy(desc(conversations.updatedAt))
+    .limit(limit)
+    .offset(offset);
+    
+  const total = await db
+    .select({ count: count() })
+    .from(conversations)
+    .where(eq(conversations.companyId, companyId));
+    
+  return { conversations: result, total: total[0].count };
+}
+
+// Client: Infinite scroll
+const { data, fetchNextPage, hasNextPage } = useInfiniteQuery({
+  queryKey: ['/api/conversations'],
+  queryFn: ({ pageParam = 1 }) => 
+    apiRequest(`/api/conversations?page=${pageParam}&limit=20`),
+  getNextPageParam: (lastPage, pages) => 
+    lastPage.conversations.length === 20 ? pages.length + 1 : undefined,
+});
+B. Message virtualization voor grote chats:
+typescriptimport { FixedSizeList as List } from 'react-window';
+
+const MessageList = ({ messages }) => (
+  <List
+    height={400}
+    itemCount={messages.length}
+    itemSize={60}
+    itemData={messages}
+  >
+    {({ index, style, data }) => (
+      <div style={style}>
+        <MessageItem message={data[index]} />
+      </div>
+    )}
+  </List>
+);
+3. Rate Limiting & Security
+typescriptimport rateLimit from 'express-rate-limit';
+
+// General API rate limiting
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: 'Too many requests from this IP'
+});
+
+// Stricter for auth endpoints
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5, // limit each IP to 5 login attempts per windowMs
+  skipSuccessfulRequests: true
+});
+
+app.use('/api/', apiLimiter);
+app.use('/api/login', authLimiter);
+app.use('/api/callback', authLimiter);
+4. Error Handling & Resilience
+A. Retry Logic voor API calls:
+typescriptconst apiRequest = async (url: string, options: RequestInit, retries = 3): Promise<any> => {
+  try {
+    const response = await fetch(url, options);
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    return await response.json();
+  } catch (error) {
+    if (retries > 0 && isRetryableError(error)) {
+      await delay(Math.pow(2, 3 - retries) * 1000); // Exponential backoff
+      return apiRequest(url, options, retries - 1);
+    }
+    throw error;
+  }
+};
+
+const isRetryableError = (error: any): boolean => {
+  return error.name === 'NetworkError' || 
+         (error.message && error.message.includes('fetch'));
+};
+
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+B. Offline detection:
+typescriptconst useOfflineSupport = () => {
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+  
+  return isOnline;
+};
+5. Monitoring & Health Checks
+typescript// Health check endpoint
+app.get('/health', async (req, res) => {
+  try {
+    // Database check
+    await db.raw('SELECT 1');
+    
+    // Memory usage check
+    const memUsage = process.memoryUsage();
+    const memUsagePercent = (memUsage.heapUsed / memUsage.heapTotal) * 100;
+    
+    if (memUsagePercent > 90) {
+      throw new Error('High memory usage');
+    }
+    
+    res.json({ 
+      status: 'healthy', 
+      timestamp: new Date(),
+      memory: memUsagePercent.toFixed(2) + '%'
+    });
+  } catch (error) {
+    res.status(503).json({ 
+      status: 'unhealthy', 
+      error: error.message,
+      timestamp: new Date()
+    });
+  }
+});
+
+// Request logging middleware
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    console.log(`${req.method} ${req.path} - ${res.statusCode} - ${duration}ms`);
+  });
+  next();
+});
+6. Italiaanse Markt Specifiek
+A. GDPR Compliance:
+typescript// Data export endpoint
+app.get('/api/customers/:id/export', isAuthenticated, async (req, res) => {
+  const customerId = req.params.id;
+  const userId = req.user?.claims?.sub;
+  
+  // Verify access
+  const customer = await storage.getCustomer(customerId);
+  const user = await storage.getUser(userId);
+  
+  if (customer.companyId !== user.companyId) {
+    return res.status(403).json({ message: 'Access denied' });
+  }
+  
+  // Export all customer data
+  const data = {
+    customer: customer,
+    conversations: await storage.getConversationsByCustomer(customerId),
+    messages: await storage.getMessagesByCustomer(customerId)
+  };
+  
+  res.setHeader('Content-Type', 'application/json');
+  res.setHeader('Content-Disposition', `attachment; filename="customer_${customerId}_data.json"`);
+  res.json(data);
+});
+
+// Data deletion
+app.delete('/api/customers/:id/gdpr-delete', isAuthenticated, async (req, res) => {
+  // Implement GDPR compliant deletion
+  await storage.anonymizeCustomer(req.params.id);
+  res.json({ message: 'Customer data anonymized' });
+});
+B. Italiaanse belasting velden:
+typescript// Extend customer schema
+export const customers = pgTable("customers", {
+  // ... existing fields
+  codiceFiscale: varchar("codice_fiscale"), // Italian tax code
+  partitaIva: varchar("partita_iva"), // VAT number
+  pec: varchar("pec"), // Certified email
+  sdi: varchar("sdi"), // Electronic invoicing code
+});
+7. Backup & Data Security
+typescript// Automated backup endpoint (admin only)
+app.post('/api/admin/backup', 
+  isAuthenticated, 
+  requireRole(['super_admin']), 
+  async (req, res) => {
+    try {
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const backupFile = `backup_${timestamp}.sql`;
+      
+      // Create database dump
+      const { exec } = require('child_process');
+      exec(`pg_dump ${process.env.DATABASE_URL} > ${backupFile}`, (error) => {
+        if (error) {
+          return res.status(500).json({ message: 'Backup failed' });
+        }
+        res.json({ message: 'Backup created', file: backupFile });
+      });
+    } catch (error) {
+      res.status(500).json({ message: 'Backup failed' });
+    }
+  }
+);
+8. Caching Strategy
+typescriptimport NodeCache from 'node-cache';
+
+const cache = new NodeCache({ stdTTL: 300 }); // 5 minutes default
+
+export const withCache = <T>(
+  key: string,
+  fetcher: () => Promise<T>,
+  ttl?: number
+): Promise<T> => {
+  const cached = cache.get<T>(key);
+  if (cached) {
+    return Promise.resolve(cached);
+  }
+  
+  return fetcher().then(result => {
+    cache.set(key, result, ttl);
+    return result;
+  });
+};
+
+// Usage examples:
+async getConversationsByCompany(companyId: number) {
+  return withCache(
+    `conversations:${companyId}`,
+    () => this.fetchConversationsFromDB(companyId),
+    60 // 1 minute cache
+  );
+}
+9. Database Optimizations
+sql-- Additional indexes for better performance
+CREATE INDEX CONCURRENTLY idx_messages_unread ON messages(conversation_id, is_read) WHERE is_read = false;
+CREATE INDEX CONCURRENTLY idx_conversations_status_company ON conversations(status, company_id);
+CREATE INDEX CONCURRENTLY idx_customers_search ON customers USING gin(to_tsvector('italian', name || ' ' || coalesce(email, '')));
+
+-- Partial indexes for common queries
+CREATE INDEX CONCURRENTLY idx_conversations_active ON conversations(company_id, updated_at DESC) 
+WHERE status IN ('new', 'in-progress');
+
+Prioriteit voor implementatie:
+
+Hoog: Rate limiting, Error handling, Health checks
+Medium: WebSockets, Pagination, Caching
+Laag: GDPR features, Backup systeem
