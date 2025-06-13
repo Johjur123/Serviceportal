@@ -22,8 +22,8 @@ export const useWebSocket = (enabled: boolean = true) => {
     }
 
     try {
-      // Get auth token (simplified - in production use proper JWT)
-      const token = 'user_token'; // This should come from auth context
+      // Skip WebSocket for now - will be enabled when proper token auth is implemented
+      return;
       
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
       const wsUrl = `${protocol}//${window.location.host}/ws?token=${token}`;
