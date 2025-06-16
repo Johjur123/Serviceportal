@@ -354,6 +354,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete("/api/admin/companies/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.user.claims.sub);
+      if (user?.role !== "super_admin") {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const companyId = parseInt(req.params.id);
+      // Note: In production, implement proper cascade deletion or prevent deletion if company has users
+      await storage.deleteCompany(companyId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting company:", error);
+      res.status(500).json({ message: "Failed to delete company" });
+    }
+  });
+
   // Admin routes - User Management
   app.get("/api/admin/users", isAuthenticated, async (req: any, res) => {
     try {

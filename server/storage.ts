@@ -34,6 +34,7 @@ export interface IStorage {
   getCompany(id: number): Promise<Company | undefined>;
   getAllCompanies(): Promise<Company[]>;
   updateCompany(id: number, company: Partial<InsertCompany>): Promise<Company>;
+  deleteCompany(id: number): Promise<void>;
   
   // Admin user management operations
   getAllUsers(): Promise<User[]>;
@@ -119,6 +120,10 @@ export class DatabaseStorage implements IStorage {
       .where(eq(companies.id, id))
       .returning();
     return updatedCompany;
+  }
+
+  async deleteCompany(id: number): Promise<void> {
+    await db.delete(companies).where(eq(companies.id, id));
   }
 
   // Admin user management operations
