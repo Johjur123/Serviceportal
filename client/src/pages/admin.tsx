@@ -155,6 +155,17 @@ export default function AdminPage() {
     },
   });
 
+  const deleteCompanyMutation = useMutation({
+    mutationFn: (id: number) => apiRequest(`/api/admin/companies/${id}`, "DELETE"),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/companies"] });
+      toast({ title: "Azienda eliminata con successo" });
+    },
+    onError: () => {
+      toast({ title: "Errore nell'eliminazione dell'azienda", variant: "destructive" });
+    },
+  });
+
   const onCreateCompany = (data: any) => {
     createCompanyMutation.mutate(data);
   };
@@ -384,6 +395,18 @@ export default function AdminPage() {
                           }}
                         >
                           <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="destructive"
+                          onClick={() => {
+                            if (confirm(`Sei sicuro di voler eliminare l'azienda "${company.name}"?`)) {
+                              deleteCompanyMutation.mutate(company.id);
+                            }
+                          }}
+                          disabled={deleteCompanyMutation.isPending}
+                        >
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     </CardContent>

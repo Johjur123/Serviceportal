@@ -10,6 +10,8 @@ import Landing from "@/pages/landing";
 import Dashboard from "@/pages/dashboard";
 import NotFound from "@/pages/not-found";
 import AdminPage from "@/pages/admin";
+import CustomersPage from "@/pages/customers";
+import SettingsPage from "@/pages/settings";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -26,6 +28,8 @@ function Router() {
         <>
           <Route path="/" component={Dashboard} />
           <Route path="/dashboard" component={Dashboard} />
+          <Route path="/customers" component={CustomersPage} />
+          <Route path="/settings" component={SettingsPage} />
           <Route path="/admin" component={AdminPage} />
         </>
       )}

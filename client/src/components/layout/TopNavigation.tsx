@@ -73,25 +73,29 @@ export default function TopNavigation({ onShowAnalytics }: TopNavigationProps) {
               Analytics
             </Button>
             
-            <Button
-              variant={activeTab === "customers" ? "default" : "ghost"}
-              size="sm"
-              className={activeTab === "customers" ? "bg-green-600 text-white hover:bg-green-700" : ""}
-              onClick={() => setActiveTab("customers")}
-            >
-              <Users className="w-4 h-4 mr-2" />
-              Clienti
-            </Button>
+            <Link href="/customers">
+              <Button
+                variant={activeTab === "customers" ? "default" : "ghost"}
+                size="sm"
+                className={activeTab === "customers" ? "bg-green-600 text-white hover:bg-green-700" : ""}
+                onClick={() => setActiveTab("customers")}
+              >
+                <Users className="w-4 h-4 mr-2" />
+                Clienti
+              </Button>
+            </Link>
             
-            <Button
-              variant={activeTab === "settings" ? "default" : "ghost"}
-              size="sm"
-              className={activeTab === "settings" ? "bg-green-600 text-white hover:bg-green-700" : ""}
-              onClick={() => setActiveTab("settings")}
-            >
-              <Settings className="w-4 h-4 mr-2" />
-              Impostazioni
-            </Button>
+            <Link href="/settings">
+              <Button
+                variant={activeTab === "settings" ? "default" : "ghost"}
+                size="sm"
+                className={activeTab === "settings" ? "bg-green-600 text-white hover:bg-green-700" : ""}
+                onClick={() => setActiveTab("settings")}
+              >
+                <Settings className="w-4 h-4 mr-2" />
+                Impostazioni
+              </Button>
+            </Link>
             
             {(user?.role === "super_admin" || user?.role === "company_admin") && (
               <Link href="/admin">
